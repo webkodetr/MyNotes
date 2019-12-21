@@ -18,7 +18,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements AdapterMyNotes.MyNotesOnClikListener{
+public class MainActivity extends AppCompatActivity implements AdapterMyNotes.MyNotesOnClikListener {
 
     private AdapterMyNotes adapterMyNotes;
     private RecyclerView rv_mynotes;
@@ -52,14 +52,14 @@ public class MainActivity extends AppCompatActivity implements AdapterMyNotes.My
         read();
     }
 
-    private void read(){
+    private void read() {
         notesList = new ArrayList<>();
 
         notesInterface = new MyNotesImp(this);
 
         Cursor cursor = notesInterface.read();
 
-        if(cursor.moveToFirst()){
+        if (cursor.moveToFirst()) {
             do {
                 MyNotes notes = new MyNotes(
                         cursor.getString(0),
@@ -69,7 +69,7 @@ public class MainActivity extends AppCompatActivity implements AdapterMyNotes.My
                 );
 
                 notesList.add(notes);
-            }while (cursor.moveToNext());
+            } while (cursor.moveToNext());
         }
         adapterMyNotes = new AdapterMyNotes(this, notesList);
         rv_mynotes.setAdapter(adapterMyNotes);
@@ -84,26 +84,48 @@ public class MainActivity extends AppCompatActivity implements AdapterMyNotes.My
     @Override
     public void onClick(int posisi) {
 
-        MyNotes notes = notesList.get(posisi);
+        final MyNotes notes = notesList.get(posisi);
+        String[] pilian = {"Ubah", "Hapus"};
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Pilihan");
 
-        String[] pilian = {"Ubah","Hapus"};
-       AlertDialog.Builder builder = new AlertDialog.Builder(this);
-       builder.setTitle("Pilihan");
+        builder.setItems(pilian, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                if (i == 0) {
+                    Intent intent = new Intent(MainActivity.this, InputActivity.class);
+                    intent.putExtra("id", notes.getId());
+                    intent.putExtra("image", notes.getImage());
+                    intent.putExtra("title", notes.getTitle());
+                    intent.putExtra("desc", notes.getDesc());
+                    startActivity(intent);
+                } else {
+                    AlertDialog.Builder builder_hapus = new AlertDialog.Builder(MainActivity.this);
+                    builder_hapus.setMessage("Yakin ingin hapus!");
+                    builder_hapus.setPositiveButton("Ya", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
 
-       builder.setItems(pilian, new DialogInterface.OnClickListener() {
-           @Override
-           public void onClick(DialogInterface dialogInterface, int i) {
-               if(i == 0){
-                   Intent intent = new Intent(MainActivity.this, InputActivity.class);
+                            if(notesInterface.delete(notes.getId())) {
+                                Toast.makeText(MainActivity.this, "Berhasil dihapus!", Toast.LENGTH_SHORT).show();
+                                read();
+                            }
+                        }
+                    });
 
-                   startActivity(intent);
-               }else{
+                    builder_hapus.setNegativeButton("Tidak", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            dialogInterface.dismiss();
+                        }
+                    });
 
-               }
-           }
-       });
+                    builder_hapus.show();
+                }
+            }
+        });
 
-       builder.show();
+        builder.show();
 
     }
 }
